@@ -1,6 +1,9 @@
 # Web Chat Application
 For DFlow technical challenge
 
+Frontend Repo: https://github.com/krehwell/DFlow-websocket-frontend
+Backend Repo: https://github.com/krehwell/DFlow-websocket-backend
+
 ## Getting Started
 
 First, run the development server:
