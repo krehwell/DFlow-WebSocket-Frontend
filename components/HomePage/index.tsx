@@ -41,7 +41,14 @@ export default function Home() {
     // UI related functions
     const renderInput = () => {
         if (!isJoined) {
-            return <InputWithJoinButtonHandler socket={socket} onJoin={() => setIsJoined(true)} />;
+            return (
+                <InputWithJoinButtonHandler
+                    onJoin={username => {
+                        socket.emit("join", { username });
+                        setIsJoined(true);
+                    }}
+                />
+            );
         }
 
         return (
@@ -82,6 +89,26 @@ export default function Home() {
         });
     };
 
+    const renderWhoIsOnline = () => {
+        if (!isJoined) return null;
+
+        return (
+            <FlexColumn style={{ padding: "2rem", backgroundColor: "beige", width: "25%" }}>
+                <h3 style={{ marginBottom: "1rem" }}>Online Users</h3>
+                <FlexColumn as="ul" style={{ gap: "0.3rem" }}>
+                    {usersOnline.map(user => {
+                        const isMine = getUserFromSessionStorage()?.id === user.id;
+                        return (
+                            <li key={user.id}>
+                                {user.username} {isMine && <i>(me)</i>}
+                            </li>
+                        );
+                    })}
+                </FlexColumn>
+            </FlexColumn>
+        );
+    };
+
     return (
         <>
             <Head>
@@ -91,14 +118,7 @@ export default function Home() {
                 <link rel="icon" href="/favicon.ico" />
             </Head>
             <Flex style={{ height: "100vh" }}>
-                <FlexColumn style={{ padding: "2rem", backgroundColor: "beige", gap: "0.7rem", width: "25%" }}>
-                    <h3>Online Users</h3>
-                    <ul>
-                        {usersOnline.map(user => {
-                            return <li key={user.id}>{user.username}</li>;
-                        })}
-                    </ul>
-                </FlexColumn>
+                {renderWhoIsOnline()}
                 <FlexColumn as="main" style={{ justifyContent: "flex-end", width: "100%" }}>
                     {renderMessages()}
                     {renderInput()}

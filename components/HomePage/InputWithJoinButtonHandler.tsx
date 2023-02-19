@@ -3,25 +3,15 @@ import { FlexColumnAlignJustifyCenter } from "../Flex";
 import { Socket } from "socket.io-client";
 
 type InputWithJoinButtonHandlerProps = {
-    onJoin: () => void;
-    socket: Socket;
+    onJoin: (username: string) => void;
 };
 
-const InputWithJoinButtonHandler = ({ onJoin, socket }: InputWithJoinButtonHandlerProps) => {
+const InputWithJoinButtonHandler = ({ onJoin }: InputWithJoinButtonHandlerProps) => {
     const [username, setUsername] = useState<string>("");
 
-    useEffect(() => {
-        socket.on("connect", () => {});
-
-        return () => {
-            socket.off("connect");
-        };
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
     const handleJoin = () => {
-        socket.emit("join", { username });
-        onJoin();
+        if (!username) return;
+        onJoin(username);
     };
 
     return (
