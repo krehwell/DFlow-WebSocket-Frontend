@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FlexColumnAlignJustifyCenter } from "../Flex";
-import { Socket } from "socket.io-client";
 
 type InputWithJoinButtonHandlerProps = {
     onJoin: (username: string) => void;

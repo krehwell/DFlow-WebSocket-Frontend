@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Head from "next/head";
 import { Flex, FlexColumn, FlexRowAlignCenter } from "@/components/Flex";
 import io from "socket.io-client";
@@ -18,6 +18,7 @@ const getUserFromSessionStorage = (): IUser | null => {
 export default function Home() {
     const [isJoined, setIsJoined] = useState(false);
     const [usersOnline, setUsersOnline] = useState<IUser[]>([]);
+    const currentUser = usersOnline.find(user => user.id === getUserFromSessionStorage()?.id);
 
     // message related states
     const [value, setValue] = useState("");
@@ -35,7 +36,25 @@ export default function Home() {
     // socket emmiters
     const sendMessage = () => {
         socket.emit("send-message", { message: value });
+        emitTypingOrStopTypingHandler({ delay: 0 });
         setValue("");
+    };
+
+    const emitTyping = () => {
+        socket.emit("typing");
+    };
+
+    const emitStopTyping = () => {
+        socket.emit("stop-typing");
+    };
+
+    const typingTimeout = useRef<any>();
+    const emitTypingOrStopTypingHandler = ({ delay }: { delay: number }) => {
+        clearTimeout(typingTimeout.current);
+        if (!currentUser?.isTyping) {
+            emitTyping();
+        }
+        typingTimeout.current = setTimeout(() => emitStopTyping(), delay);
     };
 
     // UI related functions
@@ -58,7 +77,11 @@ export default function Home() {
                     value={value}
                     onChange={e => setValue(e.target.value)}
                     onKeyDown={e => {
-                        if (e.key === "Enter") sendMessage();
+                        if (e.key === "Enter") {
+                            sendMessage();
+                            return;
+                        }
+                        emitTypingOrStopTypingHandler({ delay: 1000 });
                     }}
                 />
                 <button style={{ height: "3rem", fontSize: "1.2rem", width: "5rem" }} onClick={sendMessage}>
@@ -98,9 +121,10 @@ export default function Home() {
                 <FlexColumn as="ul" style={{ gap: "0.3rem" }}>
                     {usersOnline.map(user => {
                         const isMine = getUserFromSessionStorage()?.id === user.id;
+                        const isTyping = !isMine && user.isTyping;
                         return (
                             <li key={user.id}>
-                                {user.username} {isMine && <i>(me)</i>}
+                                {user.username} {isMine && <i>(me)</i>} {isTyping && <i>(typing...)</i>}
                             </li>
                         );
                     })}
