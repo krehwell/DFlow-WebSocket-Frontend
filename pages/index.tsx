@@ -12,18 +12,23 @@ const InputWithJoinButtonHandler = ({ onJoin }: { onJoin: () => void }) => {
         socket.on("connect", () => {});
     }, []);
 
+    const handleJoin = () => {
+        socket.emit("join", { username });
+        onJoin();
+    };
+
     return (
         <FlexColumnAlignJustifyCenter
             style={{ width: "30rem", height: "30rem", backgroundColor: "beige", gap: "0.5rem", margin: "auto" }}>
             <h1>Enter a username</h1>
-            <input value={username} onChange={e => setUsername(e.target.value)} />
-            <button
-                onClick={() => {
-                    socket.emit("join", { username });
-                    onJoin();
-                }}>
-                Join
-            </button>
+            <input
+                value={username}
+                onChange={e => setUsername(e.target.value)}
+                onKeyDown={e => {
+                    if (e.key === "Enter") handleJoin();
+                }}
+            />
+            <button onClick={handleJoin}>Join</button>
         </FlexColumnAlignJustifyCenter>
     );
 };
