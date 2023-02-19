@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import Head from "next/head";
 import { FlexColumn, FlexRowAlignCenter } from "@/components/Flex";
 import io from "socket.io-client";
 import { IUser, IUserWithMessage } from "@/types/common";
 import InputWithJoinButtonHandler from "./InputWithJoinButtonHandler";
+import { useSocketListenerHandler } from "./useSocketListenerHandler";
 
 const socket = io("http://localhost:5000");
 
@@ -14,27 +15,6 @@ const getUserFromSessionStorage = (): IUser | null => {
     return JSON.parse(user);
 };
 
-type useSocketListenerHandlerProps = {
-    disabled: boolean;
-    onNewMessage: (data: IUserWithMessage) => void;
-};
-
-const useSocketListenerHandler = ({ disabled, onNewMessage }: useSocketListenerHandlerProps) => {
-    useEffect(() => {
-        if (disabled) return;
-
-        socket.on("new-message", (data: IUserWithMessage) => onNewMessage(data));
-        socket.on("get-profile", (data: { user: IUser }) => {
-            sessionStorage.setItem("user", JSON.stringify(data.user));
-        });
-
-        return () => {
-            socket.off("new-message");
-            socket.off("get-profile");
-        };
-    }, [disabled, onNewMessage]);
-};
-
 export default function Home() {
     const [isJoined, setIsJoined] = useState(false);
 
@@ -43,9 +23,11 @@ export default function Home() {
     const [messages, setMessages] = useState<IUserWithMessage[]>([]);
 
     // socket listeners
-    useSocketListenerHandler({
+    useSocketListenerHandler(socket, {
         disabled: !isJoined,
         onNewMessage: data => setMessages(prev => [...prev, data]),
+        onLeft: data => setMessages(prev => [...prev, { user: data, message: <i>left</i> }]),
+        onJoin: data => setMessages(prev => [...prev, { user: data, message: <i>joined</i> }]),
     });
 
     // socket emmiters
@@ -89,7 +71,7 @@ export default function Home() {
                     style={{
                         padding: "0.6rem 1rem",
                         backgroundColor: i % 2 === 1 ? "#fff" : "#eee",
-                        textAlign: isMine ? "right" : "left",
+                        textAlign: isMine ? "left" : "right",
                     }}>
                     <span>{message}</span>
                     <span style={{ fontWeight: "bold", fontSize: "small" }}>{user.username}</span>

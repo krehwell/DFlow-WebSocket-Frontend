@@ -7,5 +7,5 @@ export interface IUser {
 
 export interface IUserWithMessage {
     user: IUser;
-    message: string;
+    message: string | JSX.Element;
 }
