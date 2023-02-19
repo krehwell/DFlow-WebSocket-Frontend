@@ -3,6 +3,7 @@ For DFlow technical challenge
 
 - Frontend Repo: https://github.com/krehwell/DFlow-websocket-frontend
 - Backend Repo: https://github.com/krehwell/DFlow-websocket-backend
+- Walkthorugh link: https://youtu.be/jsNxCIx1GVU
 
 ## Getting Started
 
