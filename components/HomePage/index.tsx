@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Head from "next/head";
-import { FlexColumn, FlexRowAlignCenter } from "@/components/Flex";
+import { Flex, FlexColumn, FlexRowAlignCenter } from "@/components/Flex";
 import io from "socket.io-client";
 import { IUser, IUserWithMessage } from "@/types/common";
 import InputWithJoinButtonHandler from "./InputWithJoinButtonHandler";
@@ -17,6 +17,7 @@ const getUserFromSessionStorage = (): IUser | null => {
 
 export default function Home() {
     const [isJoined, setIsJoined] = useState(false);
+    const [usersOnline, setUsersOnline] = useState<IUser[]>([]);
 
     // message related states
     const [value, setValue] = useState("");
@@ -28,6 +29,7 @@ export default function Home() {
         onNewMessage: data => setMessages(prev => [...prev, data]),
         onLeft: data => setMessages(prev => [...prev, { user: data, message: <i>left</i> }]),
         onJoin: data => setMessages(prev => [...prev, { user: data, message: <i>joined</i> }]),
+        onWhoIsOnline: data => setUsersOnline(data),
     });
 
     // socket emmiters
@@ -37,7 +39,7 @@ export default function Home() {
     };
 
     // UI related functions
-    const renderBody = () => {
+    const renderInput = () => {
         if (!isJoined) {
             return <InputWithJoinButtonHandler socket={socket} onJoin={() => setIsJoined(true)} />;
         }
@@ -88,12 +90,20 @@ export default function Home() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <FlexColumn
-                as="main"
-                style={{ justifyContent: "flex-end", height: "100vh", width: "70vw", margin: "0 auto" }}>
-                {renderMessages()}
-                {renderBody()}
-            </FlexColumn>
+            <Flex style={{ height: "100vh" }}>
+                <FlexColumn style={{ padding: "2rem", backgroundColor: "beige", gap: "0.7rem", width: "25%" }}>
+                    <h3>Online Users</h3>
+                    <ul>
+                        {usersOnline.map(user => {
+                            return <li key={user.id}>{user.username}</li>;
+                        })}
+                    </ul>
+                </FlexColumn>
+                <FlexColumn as="main" style={{ justifyContent: "flex-end", width: "100%" }}>
+                    {renderMessages()}
+                    {renderInput()}
+                </FlexColumn>
+            </Flex>
         </>
     );
 }
