@@ -1,19 +1,19 @@
 .flex {
-  display: flex;
+    display: flex;
 }
 
 .flexRow {
-  flex-direction: row;
+    flex-direction: row;
 }
 
 .flexColumn {
-  flex-direction: column;
+    flex-direction: column;
 }
 
 .alignItemsCenter {
-  align-items: center;
+    align-items: center;
 }
 
 .justifyContentCenter {
-  justify-content: center;
+    justify-content: center;
 }

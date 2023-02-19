@@ -1,10 +1,70 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Head from "next/head";
-import { FlexColumn, FlexRowAlignCenter } from "@/components/Flex";
+import {
+  FlexColumn,
+  FlexColumnAlignJustifyCenter,
+  FlexRowAlignCenter,
+} from "@/components/Flex";
+import io from "socket.io-client";
+
+const socket = io("http://localhost:5000");
+
+const InputWithJoinButtonHandler = ({ onJoin }: { onJoin: () => void }) => {
+  const [username, setUsername] = useState<string>("");
+
+  useEffect(() => {
+    socket.on("connect", () => {})
+  }, [])
+
+  return (
+    <FlexColumnAlignJustifyCenter
+      style={{
+        width: "30rem",
+        height: "30rem",
+        backgroundColor: "beige",
+        gap: "1rem",
+        margin: "auto",
+      }}
+    >
+      <h1>Enter a username</h1>
+      <input value={username} onChange={(e) => setUsername(e.target.value)} />
+      <button
+        onClick={() => {
+          socket.emit("join", { username });
+          onJoin();
+        }}
+      >
+        Join
+      </button>
+    </FlexColumnAlignJustifyCenter>
+  );
+};
 
 export default function Home() {
+  const [isJoined, setIsJoined] = useState(false);
+
+  // message related states
   const [value, setValue] = useState("");
   const [messages, setMessages] = useState<string[]>([]);
+
+  const renderBody = () => {
+    if (!isJoined) {
+      return <InputWithJoinButtonHandler onJoin={() => setIsJoined(true)} />;
+    }
+
+    return (
+      <FlexRowAlignCenter style={{ marginTop: "auto", gap: "1rem" }}>
+        <input
+          style={{ width: "100%", height: "3rem", fontSize: "1.2rem" }}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+        />
+        <button style={{ height: "3rem", fontSize: "1.2rem", width: "5rem" }}>
+          Send
+        </button>
+      </FlexRowAlignCenter>
+    );
+  };
 
   return (
     <>
@@ -18,19 +78,7 @@ export default function Home() {
         as="main"
         style={{ justifyContent: "flex-end", height: "100vh" }}
       >
-        {messages.map((message, i) => (
-          <div key={message + i}>{message}</div>
-        ))}
-        <FlexRowAlignCenter style={{ marginTop: "auto", gap: "1rem" }}>
-          <input
-            style={{ width: "100%", height: "3rem", fontSize: "1.2rem" }}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-          />
-          <button style={{ height: "3rem", fontSize: "1.2rem", width: "5rem" }}>
-            Send
-          </button>
-        </FlexRowAlignCenter>
+        {renderBody()}
       </FlexColumn>
     </>
   );
