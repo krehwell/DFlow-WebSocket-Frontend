@@ -14,13 +14,7 @@ const InputWithJoinButtonHandler = ({ onJoin }: { onJoin: () => void }) => {
 
     return (
         <FlexColumnAlignJustifyCenter
-            style={{
-                width: "30rem",
-                height: "30rem",
-                backgroundColor: "beige",
-                gap: "1rem",
-                margin: "auto",
-            }}>
+            style={{ width: "30rem", height: "30rem", backgroundColor: "beige", gap: "0.5rem", margin: "auto" }}>
             <h1>Enter a username</h1>
             <input value={username} onChange={e => setUsername(e.target.value)} />
             <button
