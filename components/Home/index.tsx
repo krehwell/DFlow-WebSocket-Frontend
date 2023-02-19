@@ -7,6 +7,13 @@ import InputWithJoinButtonHandler from "./InputWithJoinButtonHandler";
 
 const socket = io("http://localhost:5000");
 
+const getUserFromSessionStorage = (): IUser | null => {
+    // get user using try and catch instead
+    const user = sessionStorage.getItem("user");
+    if (!user) return null;
+    return JSON.parse(user);
+};
+
 type useSocketListenerHandlerProps = {
     disabled: boolean;
     onNewMessage: (data: IUserWithMessage) => void;
@@ -17,8 +24,8 @@ const useSocketListenerHandler = ({ disabled, onNewMessage }: useSocketListenerH
         if (disabled) return;
 
         socket.on("new-message", (data: IUserWithMessage) => onNewMessage(data));
-        socket.on("get-profile", (data: IUser) => {
-            sessionStorage.setItem("user", JSON.stringify(data));
+        socket.on("get-profile", (data: { user: IUser }) => {
+            sessionStorage.setItem("user", JSON.stringify(data.user));
         });
 
         return () => {
@@ -74,12 +81,19 @@ export default function Home() {
         if (!isJoined || !messages.length) return null;
 
         return messages.map(({ user, message }, i) => {
+            const ownProfile = getUserFromSessionStorage();
+            const isMine = ownProfile?.id === user.id;
             return (
-                <span
+                <FlexColumn
                     key={user.id + message + i}
-                    style={{ padding: "0.6rem 1rem", backgroundColor: i % 2 === 1 ? "#fff" : "#eee" }}>
-                    {user.username}: {message}
-                </span>
+                    style={{
+                        padding: "0.6rem 1rem",
+                        backgroundColor: i % 2 === 1 ? "#fff" : "#eee",
+                        textAlign: isMine ? "right" : "left",
+                    }}>
+                    <span>{message}</span>
+                    <span style={{ fontWeight: "bold", fontSize: "small" }}>{user.username}</span>
+                </FlexColumn>
             );
         });
     };
@@ -92,7 +106,9 @@ export default function Home() {
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
                 <link rel="icon" href="/favicon.ico" />
             </Head>
-            <FlexColumn as="main" style={{ justifyContent: "flex-end", height: "100vh" }}>
+            <FlexColumn
+                as="main"
+                style={{ justifyContent: "flex-end", height: "100vh", width: "70vw", margin: "0 auto" }}>
                 {renderMessages()}
                 {renderBody()}
             </FlexColumn>
