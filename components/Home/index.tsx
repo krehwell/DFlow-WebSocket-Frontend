@@ -2,10 +2,31 @@ import { useState, useEffect } from "react";
 import Head from "next/head";
 import { FlexColumn, FlexRowAlignCenter } from "@/components/Flex";
 import io from "socket.io-client";
-import { IUserWithMessage } from "@/types/common";
+import { IUser, IUserWithMessage } from "@/types/common";
 import InputWithJoinButtonHandler from "./InputWithJoinButtonHandler";
 
 const socket = io("http://localhost:5000");
+
+type useSocketListenerHandlerProps = {
+    disabled: boolean;
+    onNewMessage: (data: IUserWithMessage) => void;
+};
+
+const useSocketListenerHandler = ({ disabled, onNewMessage }: useSocketListenerHandlerProps) => {
+    useEffect(() => {
+        if (disabled) return;
+
+        socket.on("new-message", (data: IUserWithMessage) => onNewMessage(data));
+        socket.on("get-profile", (data: IUser) => {
+            sessionStorage.setItem("user", JSON.stringify(data));
+        });
+
+        return () => {
+            socket.off("new-message");
+            socket.off("get-profile");
+        };
+    }, [disabled, onNewMessage]);
+};
 
 export default function Home() {
     const [isJoined, setIsJoined] = useState(false);
@@ -14,17 +35,11 @@ export default function Home() {
     const [value, setValue] = useState("");
     const [messages, setMessages] = useState<IUserWithMessage[]>([]);
 
-    useEffect(() => {
-        if (!isJoined) return;
-
-        socket.on("new-message", ({ user, message }: IUserWithMessage) => {
-            setMessages(m => [...m, { user, message }]);
-        });
-
-        return () => {
-            socket.off("new-message");
-        };
-    }, [isJoined]);
+    // socket listeners
+    useSocketListenerHandler({
+        disabled: !isJoined,
+        onNewMessage: data => setMessages(prev => [...prev, data]),
+    });
 
     // socket emmiters
     const sendMessage = () => {
@@ -60,7 +75,9 @@ export default function Home() {
 
         return messages.map(({ user, message }, i) => {
             return (
-                <span key={user.id + message + i}>
+                <span
+                    key={user.id + message + i}
+                    style={{ padding: "0.6rem 1rem", backgroundColor: i % 2 === 1 ? "#fff" : "#eee" }}>
                     {user.username}: {message}
                 </span>
             );
